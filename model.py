@@ -13,13 +13,15 @@ from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from nltk.stem import LancasterStemmer, WordNetLemmatizer
 
-# Download required NLTK resources
+# ------------------------
+# NLTK and spaCy Setup
+# ------------------------
+
 nltk.download('punkt')
 nltk.download('stopwords')
 nltk.download('wordnet')
 nltk.download('omw-1.4')
 
-# Load the spaCy model
 try:
     nlp = spacy.load('en_core_web_sm', disable=['ner', 'parser'])
 except:
@@ -27,7 +29,10 @@ except:
     subprocess.run(["python", "-m", "spacy", "download", "en_core_web_sm"])
     nlp = spacy.load('en_core_web_sm', disable=['ner', 'parser'])
 
-# Load the pickle files
+# ------------------------
+# Load Pretrained Objects
+# ------------------------
+
 count_vector = pk.load(open('pickle_file/count_vector.pkl', 'rb'))             # Count Vectorizer
 tfidf_transformer = pk.load(open('pickle_file/tfidf_transformer.pkl', 'rb'))   # TFIDF Transformer
 model = pk.load(open('pickle_file/model.pkl', 'rb'))                            # Sentiment Classification Model
@@ -38,7 +43,6 @@ product_df = pd.read_csv('sample30.csv', sep=",").fillna("")
 
 # Fallback: Fit TFIDF transformer if not already fitted (needed for production stability)
 if not hasattr(tfidf_transformer, 'idf_'):
-    print("⚠️ tfidf_transformer is not fitted. Fitting now using corpus...")
     X_counts = count_vector.transform(product_df['reviews_text'])
     tfidf_transformer.fit(X_counts)
 
