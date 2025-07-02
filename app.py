@@ -1,7 +1,7 @@
 #from cgitb import text
 from flask import Flask,render_template,request
 import model 
-app = Flask('__name__')
+app = Flask(__name__)
 
 valid_userid = ['00sab00','1234','zippy','zburt5','joshua','dorothy w','rebecca','walker557','samantha','raeanne','kimmie','cassie','moore222']
 @app.route('/')
