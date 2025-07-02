@@ -28,10 +28,10 @@ except:
     nlp = spacy.load('en_core_web_sm', disable=['ner', 'parser'])
 
 # Load the pickle files
-count_vector = pk.load(open('pickle_file/count_vector.pkl', 'rb'))
-tfidf_transformer = pk.load(open('pickle_file/tfidf_transformer.pkl', 'rb'))
-model = pk.load(open('pickle_file/model.pkl', 'rb'))
-recommend_matrix = pk.load(open('pickle_file/user_final_rating.pkl', 'rb'))
+count_vector = pk.load(open('pickle_file/count_vector.pkl', 'rb'))             # Count Vectorizer
+tfidf_transformer = pk.load(open('pickle_file/tfidf_transformer.pkl', 'rb'))   # TFIDF Transformer
+model = pk.load(open('pickle_file/model.pkl', 'rb'))                            # Sentiment Classification Model
+recommend_matrix = pk.load(open('pickle_file/user_final_rating.pkl', 'rb'))    # Recommendation Matrix
 
 # Load the product review dataset
 product_df = pd.read_csv('sample30.csv', sep=",")
@@ -43,7 +43,7 @@ product_df = pd.read_csv('sample30.csv', sep=",")
 stopword_list = stopwords.words('english')
 
 def remove_special_characters(text, remove_digits=True):
-    pattern = r'[^a-zA-z0-9\s]' if not remove_digits else r'[^a-zA-z\s]'
+    pattern = r'[^a-zA-Z0-9\s]' if not remove_digits else r'[^a-zA-Z\s]'
     return re.sub(pattern, '', text)
 
 def to_lowercase(words):
@@ -90,11 +90,16 @@ def normalize_and_lemmaize(input_text):
 # ------------------------
 
 def model_predict(text_series):
+    """Predict the sentiment of input text series using the loaded ML model."""
     word_vector = count_vector.transform(text_series)
     tfidf_vector = tfidf_transformer.transform(word_vector)
     return model.predict(tfidf_vector)
 
 def recommend_products(user_name):
+    """
+    Recommend top 20 products to a user and predict sentiments of reviews.
+    Returns DataFrame with name, review text and predicted sentiment.
+    """
     if user_name not in recommend_matrix.index:
         return pd.DataFrame()  # Return empty if user is not found
 
@@ -107,6 +112,13 @@ def recommend_products(user_name):
     return product_frame[['name', 'reviews_text', 'predicted_sentiment']]
 
 def top5_products(df):
+    """
+    From the sentiment-tagged product DataFrame, return top 5 products
+    with highest percentage of positive sentiment reviews.
+    """
+    if df.empty:
+        return pd.DataFrame(columns=["name"])
+
     total_product = df.groupby(['name']).agg('count')
     rec_df = df.groupby(['name', 'predicted_sentiment']).agg('count').reset_index()
     
