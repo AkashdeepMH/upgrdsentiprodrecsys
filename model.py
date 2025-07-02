@@ -33,8 +33,14 @@ tfidf_transformer = pk.load(open('pickle_file/tfidf_transformer.pkl', 'rb'))   #
 model = pk.load(open('pickle_file/model.pkl', 'rb'))                            # Sentiment Classification Model
 recommend_matrix = pk.load(open('pickle_file/user_final_rating.pkl', 'rb'))    # Recommendation Matrix
 
-# Load the product review dataset
-product_df = pd.read_csv('sample30.csv', sep=",")
+# Load dataset
+product_df = pd.read_csv('sample30.csv', sep=",").fillna("")
+
+# Fallback: Fit TFIDF transformer if not already fitted (needed for production stability)
+if not hasattr(tfidf_transformer, 'idf_'):
+    print("⚠️ tfidf_transformer is not fitted. Fitting now using corpus...")
+    X_counts = count_vector.transform(product_df['reviews_text'])
+    tfidf_transformer.fit(X_counts)
 
 # ------------------------
 # Text Preprocessing Utils
